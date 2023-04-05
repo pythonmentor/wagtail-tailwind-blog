@@ -12,10 +12,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-recommends \
     build-essential \
     libpq-dev \
-    libjpeg62-turbo-dev \
-    zlib1g-dev \
-    libwebp-dev \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy the requirements listed in the Pipfiles
 COPY ./Pipfile* .venv .
@@ -26,18 +23,23 @@ FROM python as python-run-stage
 
 WORKDIR /app
 
-# RUN apt-get update && apt-get install --no-install-recommends -y \
-#   # psycopg2 dependencies
-#   libpq-dev \
-#   # Translations dependencies
-#   gettext \
-#   # cleaning up unused files
-#   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-#   && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install --no-install-recommends -y \
+  # psycopg2 dependencies
+  libpq-dev \
+  # Translations dependencies
+  gettext \
+  libpq-dev \
+  # Wagtail dependencies
+  libjpeg62-turbo-dev \
+  zlib1g-dev \
+  libwebp-dev \
+  # cleaning up unused files
+  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=python-build-stage /venv  /venv
 
-RUN pip install --no-cache-dir --no-index pipenv
+RUN pip install pipenv
 COPY . /app
 ENV PATH="/venv/bin:$PATH"
 
